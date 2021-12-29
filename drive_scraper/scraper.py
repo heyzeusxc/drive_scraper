@@ -2,6 +2,11 @@ print("*" * 21)
 
 import csv, math, os, shutil, sys
 import pandas as pd
+import gspread
+
+from config import google_auth
+from helpers.file_search import find_files
+from helpers.set_fstrength import set_filter_strength
 
 cwd = input("Enter Drive Or Folder To Scan: ")
 
@@ -33,19 +38,7 @@ def convert_bytes(bytes_to_convert):
     return "%s %s" % (s, size_name[i])
 
 
-def get_size(folder):
-    try:
-        for x in os.scandir(folder):
-            if x.is_file():
-                files.append([x.path, os.path.getsize(x.path)])
-            elif x.is_dir():
-                get_size(x.path)
-    except WindowsError:
-        pass
-    return files
-
-
-drive = get_size(cwd)
+drive = find_files(cwd)
 
 print(str(len(drive)) + " files found")
 print("")
@@ -79,9 +72,6 @@ with open(cwd + "/drive_info.csv", "w") as f:
 print("Finished Writing CSV")
 print("")
 
-print("Generating Graphs")
-print("")
-
 file_paths = ["Free Space - " + str(convert_bytes(actual_free_size))]
 file_sizes = [actual_free_size]
 file_percentages = [round((actual_free_size / total_drive_size) * 100, 5)]
@@ -93,30 +83,7 @@ for x in drive:
 
 df = pd.DataFrame({"File": file_paths, "Size": file_sizes, "Percent": file_percentages})
 
-filter_strength = input("Filter Strength (Recommended Between 0.1 - 1): ")
-
-try:
-    filter_strength = float(filter_strength)
-except:
-    while isinstance(filter_strength, float) is not True:
-        print("Not A Number")
-        print("")
-        try:
-            filter_strength = float(
-                input("Filter Strength (Recommended Between 0.1 - 1): ")
-            )
-            break
-        except:
-            print("Not A Number")
-            print("")
-
-print("Filter Strength Set: " + str(filter_strength))
-print("")
-
-print("Graphs Still Generating")
-print("")
-
-fs = "Percent>=" + str(filter_strength)
+fs = set_filter_strength()
 
 filtered_df = df.query(fs)
 
