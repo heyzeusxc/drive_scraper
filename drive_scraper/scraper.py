@@ -4,8 +4,7 @@ import csv, math, os, shutil, sys
 import pandas as pd
 import gspread
 
-from config import google_auth
-from helpers.file_search import find_files
+from config import share_emails, google_auth
 from helpers.set_fstrength import set_filter_strength
 
 cwd = input("Enter Drive Or Folder To Scan: ")
@@ -24,8 +23,20 @@ total_file_size = 0
 
 total_drive_size, used_drive_size, free_drive_size = shutil.disk_usage(cwd)
 
-firstRow = ["Drive", "Total Size", "Free Size"]
+firstRow = ["Drive", "Total Size", "Free Space Left"]
 secondRow = ["File", "Size", "%"]
+
+
+def find_files(folder):
+    try:
+        for x in os.scandir(folder):
+            if x.is_file():
+                files.append([x.path, os.path.getsize(x.path)])
+            elif x.is_dir():
+                find_files(x.path)
+    except WindowsError:
+        pass
+    return files
 
 
 def convert_bytes(bytes_to_convert):
@@ -49,10 +60,10 @@ for x in drive:
 actual_free_size = total_drive_size - total_file_size
 
 print("Writing CSV")
-print(cwd + "drive_info.csv)")
+print(cwd + "\drive_info.csv)")
 print("")
 
-with open(cwd + "/drive_info.csv", "w") as f:
+with open(cwd + "\drive_info.csv", "w") as f:
     typer = csv.writer(f)
     typer.writerow(firstRow)
     typer.writerow(
@@ -72,7 +83,7 @@ with open(cwd + "/drive_info.csv", "w") as f:
 print("Finished Writing CSV")
 print("")
 
-file_paths = ["Free Space - " + str(convert_bytes(actual_free_size))]
+file_paths = ["Free Space Left - " + str(convert_bytes(actual_free_size))]
 file_sizes = [actual_free_size]
 file_percentages = [round((actual_free_size / total_drive_size) * 100, 5)]
 
@@ -87,6 +98,7 @@ fs = set_filter_strength()
 
 filtered_df = df.query(fs)
 
+"""
 plot = (
     filtered_df.groupby(["File"])
     .sum()
@@ -106,12 +118,44 @@ plot = (
 plot.set_ylabel("")
 
 img = plot.get_figure()
-img.savefig(cwd + "/drive_info.png")
+img.savefig(cwd + "\drive_info.png")
 
 print("Graphs Generated")
 print("")
 
-print(cwd + "/drive_info.png")
+print(cwd + "\drive_info.png")
+print("")
+"""
+
+print("Scraper Signing In To Google")
+
+gc = gspread.service_account_from_dict(google_auth)
+
+print("Signed In To Google")
 print("")
 
-print("*" * 21)
+print("Creating Filtered Spreadsheet On Google Sheets")
+
+try:
+    spreadsheet = gc.open(cwd)
+except:
+    spreadsheet = gc.create(cwd)
+
+worksheet = spreadsheet.get_worksheet(0)
+
+worksheet.insert_rows(filtered_df.values.tolist())
+worksheet.update("A1:C1", [firstRow])
+worksheet.update(
+    "A2:C2",
+    [[cwd, convert_bytes(total_drive_size), convert_bytes(actual_free_size)]],
+)
+worksheet.update("A3:C3", [secondRow])
+
+print("Spreadsheet Created")
+print("")
+
+print("Sharing Spreadsheet")
+
+spreadsheet.share(share_emails, perm_type="user", role="writer")
+
+print("Spreadsheet Shared")

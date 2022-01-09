@@ -2,6 +2,8 @@ import json, os
 
 from helpers.file_search import find_files
 
+share_emails = ["reidl.joe@gmail.com"]
+
 google_key = "google_key.json"
 
 files = find_files(os.getcwd())

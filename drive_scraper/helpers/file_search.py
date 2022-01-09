@@ -10,6 +10,8 @@ def find_files(folder):
                 files.append([x.path, os.path.getsize(x.path)])
             elif x.is_dir():
                 find_files(x.path)
+            elif "drive_scraper" in x.path:
+                pass
     except WindowsError:
         pass
     return files

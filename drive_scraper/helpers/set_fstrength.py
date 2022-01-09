@@ -9,7 +9,7 @@ def set_filter_strength():
             print("")
             try:
                 filter_strength = float(
-                    input("Set Filter Strength (Recommended Between 0.1 - 1): ")
+                    input("Set Filter Strength (Recommended Between 0.01 - 0.1): ")
                 )
                 break
             except:
@@ -17,9 +17,6 @@ def set_filter_strength():
                 print("")
 
     print("Filter Strength Set: " + str(filter_strength))
-    print("")
-
-    print("Generating Graphs")
     print("")
 
     fs = "Percent>=" + str(filter_strength)
