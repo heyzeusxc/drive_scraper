@@ -2,7 +2,7 @@ import json, os
 
 from helpers.file_search import find_files
 
-share_emails = ["reidl.joe@gmail.com"]
+share_emails = ["email@email.com"]
 
 google_key = "google_key.json"
 
