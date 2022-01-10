@@ -13,3 +13,5 @@ This scrapes a selected folder or drive to compile a CSV of all the files in it 
 A CSV named 'drive_info.csv' is created in the selected drive or folder.
 
 A Google Sheet file is also created or updated with an option to filter out smaller files and then shared with all the emails listed in the 'share_emails' variable in 'config.py'
+
+May need to 'pip install gspread' if it doesn't install correctly.
